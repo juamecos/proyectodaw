@@ -19,7 +19,9 @@ class StoneFactory extends Factory
             'abuse' => false,  // Default as false
             'code' => $this->faker->unique()->regexify('[A-Z]{3}-[0-9]{5}'),
             'distance' => $this->faker->randomFloat(2, 10, 100),  // Dummy distance
-            'user_id' => User::inRandomOrder()->first()->id// This ads the id from an existing user 
+            'user_id' => User::inRandomOrder()->first()->id, // This ads the id from an existing user 
+            'moderation_status' => $this->faker->randomElement(['pending', 'approved', 'rejected']),
+            'report_count' => $this->faker->numberBetween(0, 10) // Generates a random number of reporte
         ];
     }
 }

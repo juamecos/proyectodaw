@@ -10,22 +10,23 @@ class Stone extends Model
     use HasFactory;
 
     protected $fillable = [
-        'image',  // Assuming 'image' is the field used, not 'image_path'
+        'image',
         'title',
         'description',
         'latitude',
         'longitude',
-        'active',
-        'abuse',
-        'code',
         'distance',
         'user_id'
+        // No incluyas 'code' en fillable para evitar asignación masiva.
     ];
 
     protected $hidden = [
+        // 'code' inicialmente está en hidden para evitar que se muestre en las serializaciones JSON por defecto
+        'code',
         'abuse',
         'active',
-        'code',
+        'moderation_status',
+        'report_count'
     ];
 
     protected $casts = [
@@ -36,10 +37,14 @@ class Stone extends Model
         'distance' => 'float',
         'id' => 'integer',
         'user_id' => 'integer',
+        'report_count' => 'integer'
     ];
 
     protected $attributes = [
         'abuse' => false,
+        'active' => true,
+        'moderation_status' => 'pending',
+        'report_count' => 0
     ];
 
     /**
@@ -47,6 +52,30 @@ class Stone extends Model
      */
     public function user()
     {
-        return $this->belongsTo(User::class, 'user:id');
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Customize the visible attributes for a given user.
+     *
+     * @param User|null $user
+     * @return $this
+     */
+    public function makeVisibleForUserOrAdmin($user = null)
+    {
+        if ($user && ($this->user_id === $user->id || $user->role === 'admin')) {
+            $this->makeVisible('code');
+        }
+
+        return $this;
+    }
+
+    public function makeVisibleForAdminOrModerator($user = null)
+    {
+        if ($user && ($user->role === 'admin' || $user->role === 'moderator')) {
+            $this->makeVisible(['abuse', 'active', 'moderation_status', 'report_count']);
+        }
+
+        return $this;
     }
 }
